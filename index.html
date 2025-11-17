@@ -192,4 +192,284 @@
         <option value="J6">J6</option>
         <option value="J7">J7</option>
         <option value="J8">J8</option>
-        <option value="J9">J9</optio
+        <option value="J9">J9</option>
+        <option value="J10">J10</option>
+        <option value="J11">J11</option>
+        <option value="J12">J12</option>
+        <option value="J13">J13</option>
+        <option value="J14">J14</option>
+        <option value="J15">J15</option>
+        <option value="J16">J16</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="judge-name">심사위원 이름 (선택)</label>
+      <input type="text" id="judge-name" placeholder="예: 홍길동">
+    </div>
+
+    <div id="scores-section" class="scores-section" style="display:none;">
+      <h3>배정된 참가자 점수 입력</h3>
+      <table>
+        <thead>
+        <tr>
+          <th style="width: 15%;">참가자 ID</th>
+          <th style="width: 15%;">점수 (0–5)</th>
+          <th>코멘트 (선택)</th>
+        </tr>
+        </thead>
+        <tbody id="score-rows">
+        <!-- 자바스크립트로 동적 생성 -->
+        </tbody>
+      </table>
+      <div class="small">
+        ※ 점수는 정수 0–5 사이 값만 허용됩니다. (예: 0, 1, 2, 3, 4, 5)
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" id="submit-btn" disabled>결과 보내기</button>
+      <button type="reset" class="secondary-btn" id="reset-btn">초기화</button>
+      <span id="status" class="status"></span>
+    </div>
+  </form>
+
+  <div class="result-box" id="result-box" style="display:none;">
+    <h3>생성된 결과 (JSON)</h3>
+    <textarea id="json-output" readonly></textarea>
+    <div class="small" style="margin-top:4px;">
+      → 이 JSON 텍스트를 복사하여 관리자가 지정한 메일 또는 집계용 시스템에 붙여넣어 주세요.
+    </div>
+
+    <h3 style="margin-top:16px;">간단 CSV (한 줄)</h3>
+    <textarea id="csv-output" readonly></textarea>
+    <div class="small" style="margin-top:4px;">
+      → 스프레드시트(Excel, Google Sheets 등)에 붙여넣기 좋은 형식입니다.
+    </div>
+  </div>
+</div>
+
+<script>
+  // ================================
+  // 1) 심사위원별 배정 정보 설정
+  // ================================
+  // TODO: 실제 배정에 맞게 이 부분만 수정해서 사용하세요.
+  // 각 심사위원(J1~J16 등)에 대해, 평가해야 할 참가자 ID(P1~P35) 3개를 지정.
+  const assignments = {
+    J1: ["P1", "P2", "P3"],
+    J2: ["P4", "P5", "P6"],
+    J3: ["P7", "P8", "P9"],
+    J4: ["P10", "P11", "P12"],
+    J5: ["P13", "P14", "P15"],
+    J6: ["P16", "P17", "P18"],
+    J7: ["P19", "P20", "P21"],
+    J8: ["P22", "P23", "P24"],
+    J9: ["P25", "P26", "P27"],
+    J10: ["P28", "P29", "P30"],
+    J11: ["P31", "P32", "P33"],
+    J12: ["P34", "P35", "P1"],  // 예시: 필요시 자유롭게 수정
+    J13: ["P2", "P3", "P4"],
+    J14: ["P5", "P6", "P7"],
+    J15: ["P8", "P9", "P10"],
+    J16: ["P11", "P12", "P13"]
+  };
+
+  const judgeSelect = document.getElementById('judge-id');
+  const scoresSection = document.getElementById('scores-section');
+  const scoreRows = document.getElementById('score-rows');
+  const submitBtn = document.getElementById('submit-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  const statusSpan = document.getElementById('status');
+  const resultBox = document.getElementById('result-box');
+  const jsonOutput = document.getElementById('json-output');
+  const csvOutput = document.getElementById('csv-output');
+  const judgeNameInput = document.getElementById('judge-name');
+
+  // 심사위원 변경 시, 해당 심사위원에게 배정된 참가자 목록 표시
+  judgeSelect.addEventListener('change', () => {
+    const judgeId = judgeSelect.value;
+    statusSpan.textContent = '';
+    statusSpan.className = 'status';
+    resultBox.style.display = 'none';
+    jsonOutput.value = '';
+    csvOutput.value = '';
+
+    // 선택 안 된 경우
+    if (!judgeId) {
+      scoresSection.style.display = 'none';
+      scoreRows.innerHTML = '';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    const assigned = assignments[judgeId];
+    if (!assigned || assigned.length === 0) {
+      scoresSection.style.display = 'none';
+      scoreRows.innerHTML = '';
+      submitBtn.disabled = true;
+      statusSpan.textContent = '이 심사위원에게 배정된 참가자가 설정되어 있지 않습니다. (assignments 설정 확인 필요)';
+      statusSpan.classList.add('error');
+      return;
+    }
+
+    // 테이블 행 생성
+    scoreRows.innerHTML = '';
+    assigned.forEach((pid, idx) => {
+      const tr = document.createElement('tr');
+
+      const tdId = document.createElement('td');
+      tdId.textContent = pid;
+      tr.appendChild(tdId);
+
+      const tdScore = document.createElement('td');
+      const inputScore = document.createElement('input');
+      inputScore.type = 'number';
+      inputScore.min = '0';
+      inputScore.max = '5';
+      inputScore.step = '1';
+      inputScore.required = true;
+      inputScore.className = 'score-input';
+      inputScore.name = `score_${pid}`;
+      inputScore.placeholder = '0–5';
+      tdScore.appendChild(inputScore);
+      tr.appendChild(tdScore);
+
+      const tdComment = document.createElement('td');
+      const inputComment = document.createElement('input');
+      inputComment.type = 'text';
+      inputComment.className = 'comment-input';
+      inputComment.name = `comment_${pid}`;
+      inputComment.placeholder = '필요 시 코멘트 입력 (선택)';
+      tdComment.appendChild(inputComment);
+      tr.appendChild(tdComment);
+
+      scoreRows.appendChild(tr);
+    });
+
+    scoresSection.style.display = 'block';
+    submitBtn.disabled = false;
+  });
+
+  // 초기화 버튼
+  resetBtn.addEventListener('click', () => {
+    judgeSelect.value = '';
+    judgeNameInput.value = '';
+    scoresSection.style.display = 'none';
+    scoreRows.innerHTML = '';
+    submitBtn.disabled = true;
+    statusSpan.textContent = '';
+    statusSpan.className = 'status';
+    resultBox.style.display = 'none';
+    jsonOutput.value = '';
+    csvOutput.value = '';
+  });
+
+  // 유효성 검사 함수 (0~5 정수인지 확인)
+  function validateScore(value) {
+    if (value === '' || value === null || value === undefined) return false;
+    const n = Number(value);
+    if (!Number.isInteger(n)) return false;
+    return n >= 0 && n <= 5;
+  }
+
+  // 결과 보내기 버튼
+  submitBtn.addEventListener('click', () => {
+    const judgeId = judgeSelect.value;
+    if (!judgeId) {
+      statusSpan.textContent = '심사위원 ID를 먼저 선택해 주세요.';
+      statusSpan.className = 'status error';
+      return;
+    }
+
+    const assigned = assignments[judgeId];
+    if (!assigned || assigned.length === 0) {
+      statusSpan.textContent = '배정 정보가 없습니다. (assignments 설정 확인 필요)';
+      statusSpan.className = 'status error';
+      return;
+    }
+
+    // 점수/코멘트 수집 + 검증
+    const entries = [];
+    let hasError = false;
+    assigned.forEach(pid => {
+      const scoreInput = document.querySelector(`input[name="score_${pid}"]`);
+      const commentInput = document.querySelector(`input[name="comment_${pid}"]`);
+      const rawScore = scoreInput ? scoreInput.value.trim() : '';
+
+      if (!validateScore(rawScore)) {
+        hasError = true;
+        scoreInput.style.borderColor = '#c53030';
+      } else {
+        scoreInput.style.borderColor = '#ccc';
+      }
+
+      entries.push({
+        participantId: pid,
+        score: rawScore === '' ? null : Number(rawScore),
+        comment: commentInput ? commentInput.value.trim() : ''
+      });
+    });
+
+    if (hasError) {
+      statusSpan.textContent = '모든 참가자에 대해 0~5 사이의 정수 점수를 입력해 주세요.';
+      statusSpan.className = 'status error';
+      resultBox.style.display = 'none';
+      return;
+    }
+
+    // 결과 객체 생성
+    const payload = {
+      judgeId: judgeId,
+      judgeName: judgeNameInput.value.trim() || null,
+      timestamp: new Date().toISOString(),
+      results: entries
+    };
+
+    // JSON 문자열
+    const jsonStr = JSON.stringify(payload, null, 2);
+    jsonOutput.value = jsonStr;
+
+    // CSV 한 줄 (예: judgeId,judgeName,participantId1,score1,comment1,...)
+    // 콤마/따옴표 처리 간단화: " "로 감싸고 내부 "는 ""로 이스케이프
+    function csvEscape(str) {
+      if (str === null || str === undefined) return '';
+      const s = String(str);
+      if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }
+
+    const csvParts = [];
+    csvParts.push(csvEscape(judgeId));
+    csvParts.push(csvEscape(judgeNameInput.value.trim() || ''));
+    entries.forEach(e => {
+      csvParts.push(csvEscape(e.participantId));
+      csvParts.push(csvEscape(e.score));
+      csvParts.push(csvEscape(e.comment));
+    });
+    const csvLine = csvParts.join(',');
+
+    csvOutput.value = csvLine;
+
+    resultBox.style.display = 'block';
+
+    // 클립보드 자동 복사 시도 (JSON 기준)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(jsonStr)
+        .then(() => {
+          statusSpan.textContent = '결과가 생성되었고, JSON 내용이 클립보드에 복사되었습니다. 관리자에게 전달해 주세요.';
+          statusSpan.className = 'status success';
+        })
+        .catch(() => {
+          statusSpan.textContent = '결과가 생성되었습니다. 아래 JSON/CSV 내용을 복사해서 관리자에게 전달해 주세요. (자동 복사 실패)';
+          statusSpan.className = 'status';
+        });
+    } else {
+      statusSpan.textContent = '결과가 생성되었습니다. 아래 JSON/CSV 내용을 복사해서 관리자에게 전달해 주세요. (브라우저에서 자동 복사 미지원)';
+      statusSpan.className = 'status';
+    }
+  });
+</script>
+</body>
+</html>
