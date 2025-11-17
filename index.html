@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>온라인 심사 투표</title>
+  <title>オンライン審査投票</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -168,22 +168,22 @@
 </head>
 <body>
 <div class="container">
-  <h1>온라인 심사 투표</h1>
+  <h1>オンライン審査投票</h1>
   <div class="subtitle">
-    각 심사위원은 본인에게 지정된 3명의 참가자(P1–P35)에 대해 0–5점을 입력한 뒤 결과를 제출합니다.
+    各審査委員は、自分に割り当てられた3名の参加者（P1–P35）について0〜5点を入力し、結果を提出してください。
   </div>
 
   <div class="info-box">
-    • 심사위원 ID를 선택하면, 해당 심사위원에게 배정된 참가자 3명이 자동으로 표시됩니다.<br>
-    • 각 참가자에 대해 <b>0–5점</b>을 입력한 뒤 <b>「결과 보내기」</b> 버튼을 눌러 주세요.<br>
-    • 하단에 생성된 결과(JSON/CSV)를 복사하여, 관리자가 안내한 메일·스프레드시트 등에 붙여넣어 전달하면 집계가 가능합니다.
+    • 審査委員IDを選択すると、その審査委員に割り当てられた3名の参加者が自動的に表示されます。<br>
+    • 各参加者について<b>0〜5点</b>を入力し、<b>「結果送信」</b>ボタンを押してください。<br>
+    • 下部に生成された結果（JSON/CSV）をコピーし、管理者から案内されたメール・スプレッドシート等に貼り付けて送信すると集計が可能です。
   </div>
 
   <form id="vote-form" onsubmit="return false;">
     <div class="field">
-      <label for="judge-id">심사위원 ID</label>
+      <label for="judge-id">審査委員ID</label>
       <select id="judge-id" required>
-        <option value="">-- 심사위원을 선택하세요 --</option>
+        <option value="">-- 審査委員を選択してください --</option>
         <option value="J1">J1</option>
         <option value="J2">J2</option>
         <option value="J3">J3</option>
@@ -204,18 +204,18 @@
     </div>
 
     <div class="field">
-      <label for="judge-name">심사위원 이름 (선택)</label>
-      <input type="text" id="judge-name" placeholder="예: 홍길동">
+      <label for="judge-name">審査委員名（任意）</label>
+      <input type="text" id="judge-name" placeholder="例：山田太郎">
     </div>
 
     <div id="scores-section" class="scores-section" style="display:none;">
-      <h3>배정된 참가자 점수 입력</h3>
+      <h3>割り当てられた参加者の点数入力</h3>
       <table>
         <thead>
         <tr>
-          <th style="width: 15%;">참가자 ID</th>
-          <th style="width: 15%;">점수 (0–5)</th>
-          <th>코멘트 (선택)</th>
+          <th style="width: 15%;">参加者ID</th>
+          <th style="width: 15%;">点数（0–5）</th>
+          <th>コメント（任意）</th>
         </tr>
         </thead>
         <tbody id="score-rows">
@@ -223,38 +223,38 @@
         </tbody>
       </table>
       <div class="small">
-        ※ 점수는 정수 0–5 사이 값만 허용됩니다. (예: 0, 1, 2, 3, 4, 5)
+        ※ 点数は整数の0〜5のみ入力できます。（例：0, 1, 2, 3, 4, 5）
       </div>
     </div>
 
     <div class="btn-row">
-      <button type="button" id="submit-btn" disabled>결과 보내기</button>
-      <button type="reset" class="secondary-btn" id="reset-btn">초기화</button>
+      <button type="button" id="submit-btn" disabled>結果送信</button>
+      <button type="reset" class="secondary-btn" id="reset-btn">リセット</button>
       <span id="status" class="status"></span>
     </div>
   </form>
 
   <div class="result-box" id="result-box" style="display:none;">
-    <h3>생성된 결과 (JSON)</h3>
+    <h3>生成された結果（JSON）</h3>
     <textarea id="json-output" readonly></textarea>
     <div class="small" style="margin-top:4px;">
-      → 이 JSON 텍스트를 복사하여 관리자가 지정한 메일 또는 집계용 시스템에 붙여넣어 주세요.
+      → このJSONテキストをコピーして、管理者が指定したメールまたは集計用システムに貼り付けてください。
     </div>
 
-    <h3 style="margin-top:16px;">간단 CSV (한 줄)</h3>
+    <h3 style="margin-top:16px;">簡易CSV（1行）</h3>
     <textarea id="csv-output" readonly></textarea>
     <div class="small" style="margin-top:4px;">
-      → 스프레드시트(Excel, Google Sheets 등)에 붙여넣기 좋은 형식입니다.
+      → スプレッドシート（Excel, Google Sheets など）に貼り付けやすい形式です。
     </div>
   </div>
 </div>
 
 <script>
   // ================================
-  // 1) 심사위원별 배정 정보 설정
+  // 1) 審査委員ごとの割り当て情報の設定
   // ================================
-  // TODO: 실제 배정에 맞게 이 부분만 수정해서 사용하세요.
-  // 각 심사위원(J1~J16 등)에 대해, 평가해야 할 참가자 ID(P1~P35) 3개를 지정.
+  // TODO: 実際の割り当てに合わせて、この部分だけを書き換えて使用してください。
+  // 各審査委員（J1〜J16など）ごとに、評価対象となる参加者ID（P1〜P35）を3件ずつ指定します。
   const assignments = {
     J1: ["P1", "P2", "P3"],
     J2: ["P4", "P5", "P6"],
@@ -267,7 +267,7 @@
     J9: ["P25", "P26", "P27"],
     J10: ["P28", "P29", "P30"],
     J11: ["P31", "P32", "P33"],
-    J12: ["P34", "P35", "P1"],  // 예시: 필요시 자유롭게 수정
+    J12: ["P34", "P35", "P1"],  // 例：必要に応じて自由に変更してください。
     J13: ["P2", "P3", "P4"],
     J14: ["P5", "P6", "P7"],
     J15: ["P8", "P9", "P10"],
@@ -285,7 +285,7 @@
   const csvOutput = document.getElementById('csv-output');
   const judgeNameInput = document.getElementById('judge-name');
 
-  // 심사위원 변경 시, 해당 심사위원에게 배정된 참가자 목록 표시
+  // 審査委員が変更されたときに、その審査委員に割り当てられた参加者一覧を表示
   judgeSelect.addEventListener('change', () => {
     const judgeId = judgeSelect.value;
     statusSpan.textContent = '';
@@ -294,7 +294,7 @@
     jsonOutput.value = '';
     csvOutput.value = '';
 
-    // 선택 안 된 경우
+    // 未選択の場合
     if (!judgeId) {
       scoresSection.style.display = 'none';
       scoreRows.innerHTML = '';
@@ -307,12 +307,12 @@
       scoresSection.style.display = 'none';
       scoreRows.innerHTML = '';
       submitBtn.disabled = true;
-      statusSpan.textContent = '이 심사위원에게 배정된 참가자가 설정되어 있지 않습니다. (assignments 설정 확인 필요)';
+      statusSpan.textContent = 'この審査委員に割り当てられた参加者が設定されていません。（assignments の設定を確認してください）';
       statusSpan.classList.add('error');
       return;
     }
 
-    // 테이블 행 생성
+    // テーブル行の生成
     scoreRows.innerHTML = '';
     assigned.forEach((pid, idx) => {
       const tr = document.createElement('tr');
@@ -339,7 +339,7 @@
       inputComment.type = 'text';
       inputComment.className = 'comment-input';
       inputComment.name = `comment_${pid}`;
-      inputComment.placeholder = '필요 시 코멘트 입력 (선택)';
+      inputComment.placeholder = '必要に応じてコメントを入力（任意）';
       tdComment.appendChild(inputComment);
       tr.appendChild(tdComment);
 
@@ -350,7 +350,7 @@
     submitBtn.disabled = false;
   });
 
-  // 초기화 버튼
+  // リセットボタン
   resetBtn.addEventListener('click', () => {
     judgeSelect.value = '';
     judgeNameInput.value = '';
@@ -364,7 +364,7 @@
     csvOutput.value = '';
   });
 
-  // 유효성 검사 함수 (0~5 정수인지 확인)
+  // バリデーション関数（0〜5の整数かどうかを確認）
   function validateScore(value) {
     if (value === '' || value === null || value === undefined) return false;
     const n = Number(value);
@@ -372,23 +372,23 @@
     return n >= 0 && n <= 5;
   }
 
-  // 결과 보내기 버튼
+  // 「結果送信」ボタン
   submitBtn.addEventListener('click', () => {
     const judgeId = judgeSelect.value;
     if (!judgeId) {
-      statusSpan.textContent = '심사위원 ID를 먼저 선택해 주세요.';
+      statusSpan.textContent = '先に審査委員IDを選択してください。';
       statusSpan.className = 'status error';
       return;
     }
 
     const assigned = assignments[judgeId];
     if (!assigned || assigned.length === 0) {
-      statusSpan.textContent = '배정 정보가 없습니다. (assignments 설정 확인 필요)';
+      statusSpan.textContent = '割り当て情報がありません。（assignments の設定を確認してください）';
       statusSpan.className = 'status error';
       return;
     }
 
-    // 점수/코멘트 수집
+    // 点数・コメントの収集
     const entries = [];
     let hasError = false;
     assigned.forEach(pid => {
@@ -411,13 +411,13 @@
     });
 
     if (hasError) {
-      statusSpan.textContent = '모든 참가자에 대해 0~5 사이의 정수 점수를 입력해 주세요.';
+      statusSpan.textContent = 'すべての参加者について0〜5の整数の点数を入力してください。';
       statusSpan.className = 'status error';
       resultBox.style.display = 'none';
       return;
     }
 
-    // 결과 객체 생성
+    // 結果オブジェクトの生成
     const payload = {
       judgeId: judgeId,
       judgeName: judgeNameInput.value.trim() || null,
@@ -428,7 +428,7 @@
     const jsonStr = JSON.stringify(payload, null, 2);
     jsonOutput.value = jsonStr;
 
-    // CSV 생성 (기존 코드 그대로)
+    // CSVの生成（元のコードをそのまま使用）
     const csvParts = [];
     function csvEscape(str) {
       if (str === null || str === undefined) return '';
@@ -449,8 +449,8 @@
 
     resultBox.style.display = 'block';
 
-    // ---- 여기부터 백엔드로 전송 ----
-    statusSpan.textContent = '서버로 전송 중입니다...';
+    // ---- ここからバックエンドへ送信 ----
+    statusSpan.textContent = 'サーバーへ送信中です…';
     statusSpan.className = 'status';
 
     fetch('https://vote-nit6.onrender.com', {
@@ -466,12 +466,12 @@
       return res.json();
     })
     .then(data => {
-      statusSpan.textContent = 'Dropbox로 업로드 완료: ' + (data.path || '');
+      statusSpan.textContent = 'Dropboxへのアップロード完了：' + (data.path || '');
       statusSpan.className = 'status success';
     })
     .catch(err => {
       console.error(err);
-      statusSpan.textContent = '서버 전송/Dropbox 업로드 중 오류가 발생했습니다. (관리자에게 문의)';
+      statusSpan.textContent = 'サーバー送信／Dropboxアップロード中にエラーが発生しました。（管理者にお問い合わせください）';
       statusSpan.className = 'status error';
     });
   });
