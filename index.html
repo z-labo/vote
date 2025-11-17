@@ -277,6 +277,55 @@
     J16: "Stephan Reichelt"
   };
 
+    // ================================
+  // 0.5) 로컬 캐시 (localStorage) 유틸
+  // ================================
+  const VOTE_CACHE_KEY = "vote_cache_v1";
+
+  function loadCache() {
+    try {
+      const raw = localStorage.getItem(VOTE_CACHE_KEY);
+      if (!raw) return {};
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error("cache load error", e);
+      return {};
+    }
+  }
+
+  function saveCache(cache) {
+    try {
+      localStorage.setItem(VOTE_CACHE_KEY, JSON.stringify(cache));
+    } catch (e) {
+      console.error("cache save error", e);
+    }
+  }
+
+  // 현재 선택된 심사위원의 입력값을 캐시에 저장
+  function saveCurrentJudgeToCache() {
+    const judgeId = judgeSelect.value;
+    if (!judgeId) return;
+    const assigned = assignments[judgeId];
+    if (!assigned) return;
+
+    const entries = assigned.map(pid => {
+      const scoreInput = document.querySelector(`input[name="score_${pid}"]`);
+      const commentInput = document.querySelector(`input[name="comment_${pid}"]`);
+      return {
+        participantId: pid,
+        score: scoreInput ? scoreInput.value : "",
+        comment: commentInput ? commentInput.value : ""
+      };
+    });
+
+    const cache = loadCache();
+    cache[judgeId] = {
+      judgeName: judgeNameInput.value,
+      results: entries
+    };
+    saveCache(cache);
+  }
+
   const assignments = {
     J1: ["P1", "P18", "P12","P32", "P7", "P25", "P40"],
     J2: ["P2", "P20", "P13","P33", "P8", "P26"],
@@ -315,6 +364,10 @@
     resultBox.style.display = 'none';
     jsonOutput.value = '';
     csvOutput.value = '';
+
+    // 캐시 읽기
+    const cache = loadCache();
+    const cached = cache[judgeId];
 
     // --- 이름 자동 입력 부분 추가 ---
     const fixedName = judgeNames[judgeId] || '';
@@ -376,7 +429,25 @@
       tdComment.appendChild(inputComment);
       tr.appendChild(tdComment);
 
+      // --- 캐시된 값 복원 ---
+      if (cached && Array.isArray(cached.results)) {
+        const found = cached.results.find(r => r.participantId === pid);
+        if (found) {
+          if (found.score !== undefined && found.score !== null) {
+            inputScore.value = found.score;
+          }
+          if (found.comment) {
+            inputComment.value = found.comment;
+          }
+        }
+      }
+      // --- 입력 시마다 캐시 저장 ---
+      inputScore.addEventListener('input', saveCurrentJudgeToCache);
+      inputComment.addEventListener('input', saveCurrentJudgeToCache);
+
       scoreRows.appendChild(tr);
+      // 이름도 바뀌면 캐시 업데이트
+      judgeNameInput.addEventListener('input', saveCurrentJudgeToCache);
     });
 
     scoresSection.style.display = 'block';
@@ -385,6 +456,8 @@
 
   // Reset button
   resetBtn.addEventListener('click', () => {
+    localStorage.removeItem(VOTE_CACHE_KEY);
+    
     judgeSelect.value = '';
     judgeNameInput.value = '';
     judgeNameInput.readOnly = false;  // ★ 추가: 다시 자유 입력 가능하게
