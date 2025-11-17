@@ -73,3 +73,11 @@ def submit_vote():
 
   # 5) 클라이언트에 성공 응답
   return jsonify({"ok": True, "path": dropbox_path})
+
+@app.after_request
+def add_cors_headers(response):
+    # GitHub Pages 도메인만 허용 (테스트용이면 "*" 도 가능)
+    response.headers["Access-Control-Allow-Origin"] = "https://z-labo.github.io"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
