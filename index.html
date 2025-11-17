@@ -388,7 +388,7 @@
       return;
     }
 
-    // 점수/코멘트 수집 + 검증
+    // 점수/코멘트 수집
     const entries = [];
     let hasError = false;
     assigned.forEach(pid => {
@@ -425,12 +425,11 @@
       results: entries
     };
 
-    // JSON 문자열
     const jsonStr = JSON.stringify(payload, null, 2);
     jsonOutput.value = jsonStr;
 
-    // CSV 한 줄 (예: judgeId,judgeName,participantId1,score1,comment1,...)
-    // 콤마/따옴표 처리 간단화: " "로 감싸고 내부 "는 ""로 이스케이프
+    // CSV 생성 (기존 코드 그대로)
+    const csvParts = [];
     function csvEscape(str) {
       if (str === null || str === undefined) return '';
       const s = String(str);
@@ -439,8 +438,6 @@
       }
       return s;
     }
-
-    const csvParts = [];
     csvParts.push(csvEscape(judgeId));
     csvParts.push(csvEscape(judgeNameInput.value.trim() || ''));
     entries.forEach(e => {
@@ -448,27 +445,35 @@
       csvParts.push(csvEscape(e.score));
       csvParts.push(csvEscape(e.comment));
     });
-    const csvLine = csvParts.join(',');
-
-    csvOutput.value = csvLine;
+    csvOutput.value = csvParts.join(',');
 
     resultBox.style.display = 'block';
 
-    // 클립보드 자동 복사 시도 (JSON 기준)
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(jsonStr)
-        .then(() => {
-          statusSpan.textContent = '결과가 생성되었고, JSON 내용이 클립보드에 복사되었습니다. 관리자에게 전달해 주세요.';
-          statusSpan.className = 'status success';
-        })
-        .catch(() => {
-          statusSpan.textContent = '결과가 생성되었습니다. 아래 JSON/CSV 내용을 복사해서 관리자에게 전달해 주세요. (자동 복사 실패)';
-          statusSpan.className = 'status';
-        });
-    } else {
-      statusSpan.textContent = '결과가 생성되었습니다. 아래 JSON/CSV 내용을 복사해서 관리자에게 전달해 주세요. (브라우저에서 자동 복사 미지원)';
-      statusSpan.className = 'status';
-    }
+    // ---- 여기부터 백엔드로 전송 ----
+    statusSpan.textContent = '서버로 전송 중입니다...';
+    statusSpan.className = 'status';
+
+    fetch('https://vote-nit6.onrender.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(async (res) => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error('HTTP ' + res.status + ' ' + text);
+      }
+      return res.json();
+    })
+    .then(data => {
+      statusSpan.textContent = 'Dropbox로 업로드 완료: ' + (data.path || '');
+      statusSpan.className = 'status success';
+    })
+    .catch(err => {
+      console.error(err);
+      statusSpan.textContent = '서버 전송/Dropbox 업로드 중 오류가 발생했습니다. (관리자에게 문의)';
+      statusSpan.className = 'status error';
+    });
   });
 </script>
 </body>
