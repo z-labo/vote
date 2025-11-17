@@ -49,7 +49,7 @@ def submit_vote():
   # 3) 파일 이름/경로 만들기
 
   now_jst = datetime.now(JST)
-  date_str = now_jst.strftime("%Y-%m-%d")  # 예: "2025-11-17"
+  date_str = now_jst.strftime("%Y%m%d")  # 예: "20251117"
 
   '''
   #    예: J1_2025-11-17T09-00-00Z.json
