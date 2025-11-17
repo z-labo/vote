@@ -258,23 +258,42 @@
   // ================================
   // TODO: Modify only this part according to the actual assignments and use it.
   // For each judge (J1–J16, etc.), specify three participant IDs (P1–P35) to be evaluated.
+ const judgeNames = {
+    J1: "近藤 圭祐",   // ← 실제 이름으로 바꿔주세요
+    J2: "Rajeev Ranjan",
+    J3: "長谷川 智士",
+    J4: "熊谷 幸汰",
+    J5: "長谷川 和男",
+    J6: "Quang Duc Pham",
+    J7: "茨田 大輔",
+    J8: "青木 徹",
+    J9: "柳谷 伸一郎",
+    J10: "福井 一",
+    J11: "益田 有",
+    J12: "大塚 崇光",
+    J13: "Tsung-Hsun Yang",
+    J14: "Yu-Lung Lo",
+    J15: "花山 良平",
+    J16: "Stephan Reichelt"
+  };
+
   const assignments = {
-    J1: ["P1", "P2", "P3"],
-    J2: ["P4", "P5", "P6"],
-    J3: ["P7", "P8", "P9"],
-    J4: ["P10", "P11", "P12"],
-    J5: ["P13", "P14", "P15"],
-    J6: ["P16", "P17", "P18"],
-    J7: ["P19", "P20", "P21"],
-    J8: ["P22", "P23", "P24"],
-    J9: ["P25", "P26", "P27"],
-    J10: ["P28", "P29", "P30"],
-    J11: ["P31", "P32", "P33"],
-    J12: ["P34", "P35", "P1"],  // Example: freely modify as needed.
-    J13: ["P2", "P3", "P4"],
-    J14: ["P5", "P6", "P7"],
-    J15: ["P8", "P9", "P10"],
-    J16: ["P11", "P12", "P13"]
+    J1: ["P1", "P18", "P12","P32", "P7", "P25", "P40"],
+    J2: ["P2", "P20", "P13","P33", "P8", "P26"],
+    J3: ["P3", "P21", "P15","P36", "P9", "P27"],
+    J4: ["P4", "P22", "P16","P37", "P10", "P28", "P40"],
+    J5: ["P5", "P23", "P17","P38", "P11", "P30"],
+    J6: ["P6", "P24", "P1","P18", "P12", "P32"],
+    J7: ["P7", "P25", "P2","P20", "P13", "P33"],
+    J8: ["P8", "P26", "P3","P21", "P15", "P36", "P40"],
+    J9: ["P9", "P27", "P4","P22", "P16", "P37"],
+    J10: ["P10", "P28", "P5","P23", "P17", "P38"],
+    J11: ["P11", "P30", "P6","P24", "P1", "P18"],
+    J12: ["P12", "P32", "P7","P25", "P2", "P20"],  // Example: freely modify as needed.
+    J13: ["P13", "P33", "P8","P26", "P33", "P21"],
+    J14: ["P15", "P36", "P9","P27", "P4", "P22"],
+    J15: ["P16", "P37", "P10","P28", "P5", "P23"],
+    J16: ["P17", "P38", "P11","P30", "P6", "P24"]
   };
 
   const judgeSelect = document.getElementById('judge-id');
@@ -296,6 +315,17 @@
     resultBox.style.display = 'none';
     jsonOutput.value = '';
     csvOutput.value = '';
+
+    // --- 이름 자동 입력 부분 추가 ---
+    const fixedName = judgeNames[judgeId] || '';
+    if (fixedName) {
+      judgeNameInput.value = fixedName;
+      judgeNameInput.readOnly = true;   // 이름을 고정하고 싶을 때
+    } else {
+      judgeNameInput.value = '';
+      judgeNameInput.readOnly = false;  // ID에 이름 매핑이 없으면 자유 입력
+    }
+    // ------------------------------
 
     // If nothing is selected
     if (!judgeId) {
@@ -357,6 +387,7 @@
   resetBtn.addEventListener('click', () => {
     judgeSelect.value = '';
     judgeNameInput.value = '';
+    judgeNameInput.readOnly = false;  // ★ 추가: 다시 자유 입력 가능하게
     scoresSection.style.display = 'none';
     scoreRows.innerHTML = '';
     submitBtn.disabled = true;
