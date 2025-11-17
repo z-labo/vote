@@ -201,4 +201,8 @@ def api_results():
     return jsonify(agg)
   except Exception as e:
     print("Aggregate error:", repr(e))
-    return jsonify({"ok": False, "error": "aggregate_failed"}), 500
+    return jsonify({
+      "ok": False,
+      "error": "aggregate_failed",
+      "detail": repr(e)     # ★ 디버깅용 상세 메시지
+    }), 500
