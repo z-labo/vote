@@ -58,9 +58,9 @@ def submit_vote():
     ts = datetime.now(timezone.utc).isoformat()
 
   safe_ts = ts.replace(":", "-")  # Windows/Dropbox 경로에 안전하게
-  
-  '''
   filename = f"{judge_id}_{safe_ts}.json"
+  '''
+  filename = f"{judge_id}_{date_str}.json"
   dropbox_path = f"{DROPBOX_BASE_FOLDER}/{filename}"
 
   # 4) Dropbox에 업로드
