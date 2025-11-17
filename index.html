@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>オンライン審査投票</title>
+  <title>Online Voting</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -168,22 +168,21 @@
 </head>
 <body>
 <div class="container">
-  <h1>オンライン審査投票</h1>
+  <h1>Online Review Voting</h1>
   <div class="subtitle">
-    各審査委員は、自分に割り当てられた3名の参加者（P1–P35）について0〜5点を入力し、結果を提出してください。
+    Each judge should enter a score from 0 to 5 for the three participants (P1–P35) assigned to them and submit the results.
   </div>
 
   <div class="info-box">
-    • 審査委員IDを選択すると、その審査委員に割り当てられた3名の参加者が自動的に表示されます。<br>
-    • 各参加者について<b>0〜5点</b>を入力し、<b>「結果送信」</b>ボタンを押してください。<br>
-    • 下部に生成された結果（JSON/CSV）をコピーし、管理者から案内されたメール・スプレッドシート等に貼り付けて送信すると集計が可能です。
+    • When you select your judge ID, the three participants assigned to that judge will be shown automatically.<br>
+    • Please enter a <b>score from 0 to 5</b> for each participant and click <b>"Submit Results"</b>.<br>
   </div>
 
   <form id="vote-form" onsubmit="return false;">
     <div class="field">
-      <label for="judge-id">審査委員ID</label>
+      <label for="judge-id">Judge ID</label>
       <select id="judge-id" required>
-        <option value="">-- 審査委員を選択してください --</option>
+        <option value="">-- Please select a judge --</option>
         <option value="J1">J1</option>
         <option value="J2">J2</option>
         <option value="J3">J3</option>
@@ -204,18 +203,18 @@
     </div>
 
     <div class="field">
-      <label for="judge-name">審査委員名（任意）</label>
-      <input type="text" id="judge-name" placeholder="例：山田太郎">
+      <label for="judge-name">Judge name (optional)</label>
+      <input type="text" id="judge-name" placeholder="e.g., John Smith">
     </div>
 
     <div id="scores-section" class="scores-section" style="display:none;">
-      <h3>割り当てられた参加者の点数入力</h3>
+      <h3>Enter scores for assigned participants</h3>
       <table>
         <thead>
         <tr>
-          <th style="width: 15%;">参加者ID</th>
-          <th style="width: 15%;">点数（0–5）</th>
-          <th>コメント（任意）</th>
+          <th style="width: 15%;">Participant ID</th>
+          <th style="width: 15%;">Score (0–5)</th>
+          <th>Comment (optional)</th>
         </tr>
         </thead>
         <tbody id="score-rows">
@@ -223,38 +222,40 @@
         </tbody>
       </table>
       <div class="small">
-        ※ 点数は整数の0〜5のみ入力できます。（例：0, 1, 2, 3, 4, 5）
+        ※ Only integer scores from 0 to 5 can be entered. (Examples: 0, 1, 2, 3, 4, 5)
       </div>
     </div>
 
     <div class="btn-row">
-      <button type="button" id="submit-btn" disabled>結果送信</button>
-      <button type="reset" class="secondary-btn" id="reset-btn">リセット</button>
+      <button type="button" id="submit-btn" disabled>Submit Results</button>
+      <button type="reset" class="secondary-btn" id="reset-btn">Reset</button>
       <span id="status" class="status"></span>
     </div>
   </form>
 
+  <!--
   <div class="result-box" id="result-box" style="display:none;">
-    <h3>生成された結果（JSON）</h3>
+    <h3>Generated result (JSON)</h3>
     <textarea id="json-output" readonly></textarea>
     <div class="small" style="margin-top:4px;">
-      → このJSONテキストをコピーして、管理者が指定したメールまたは集計用システムに貼り付けてください。
+      → Copy this JSON text and paste it into the email or aggregation system specified by the administrator.
     </div>
 
-    <h3 style="margin-top:16px;">簡易CSV（1行）</h3>
+    <h3 style="margin-top:16px;">Simple CSV (1 line)</h3>
     <textarea id="csv-output" readonly></textarea>
     <div class="small" style="margin-top:4px;">
-      → スプレッドシート（Excel, Google Sheets など）に貼り付けやすい形式です。
+      → This format is easy to paste into spreadsheets (Excel, Google Sheets, etc.).
     </div>
   </div>
 </div>
 
+-->
 <script>
   // ================================
-  // 1) 審査委員ごとの割り当て情報の設定
+  // 1) Setting assignment information for each judge
   // ================================
-  // TODO: 実際の割り当てに合わせて、この部分だけを書き換えて使用してください。
-  // 各審査委員（J1〜J16など）ごとに、評価対象となる参加者ID（P1〜P35）を3件ずつ指定します。
+  // TODO: Modify only this part according to the actual assignments and use it.
+  // For each judge (J1–J16, etc.), specify three participant IDs (P1–P35) to be evaluated.
   const assignments = {
     J1: ["P1", "P2", "P3"],
     J2: ["P4", "P5", "P6"],
@@ -267,7 +268,7 @@
     J9: ["P25", "P26", "P27"],
     J10: ["P28", "P29", "P30"],
     J11: ["P31", "P32", "P33"],
-    J12: ["P34", "P35", "P1"],  // 例：必要に応じて自由に変更してください。
+    J12: ["P34", "P35", "P1"],  // Example: freely modify as needed.
     J13: ["P2", "P3", "P4"],
     J14: ["P5", "P6", "P7"],
     J15: ["P8", "P9", "P10"],
@@ -285,7 +286,7 @@
   const csvOutput = document.getElementById('csv-output');
   const judgeNameInput = document.getElementById('judge-name');
 
-  // 審査委員が変更されたときに、その審査委員に割り当てられた参加者一覧を表示
+  // When the judge is changed, display the list of participants assigned to that judge
   judgeSelect.addEventListener('change', () => {
     const judgeId = judgeSelect.value;
     statusSpan.textContent = '';
@@ -294,7 +295,7 @@
     jsonOutput.value = '';
     csvOutput.value = '';
 
-    // 未選択の場合
+    // If nothing is selected
     if (!judgeId) {
       scoresSection.style.display = 'none';
       scoreRows.innerHTML = '';
@@ -307,12 +308,12 @@
       scoresSection.style.display = 'none';
       scoreRows.innerHTML = '';
       submitBtn.disabled = true;
-      statusSpan.textContent = 'この審査委員に割り当てられた参加者が設定されていません。（assignments の設定を確認してください）';
+      statusSpan.textContent = 'No participants have been assigned to this judge. (Please check the assignments settings.)';
       statusSpan.classList.add('error');
       return;
     }
 
-    // テーブル行の生成
+    // Generate table rows
     scoreRows.innerHTML = '';
     assigned.forEach((pid, idx) => {
       const tr = document.createElement('tr');
@@ -339,7 +340,7 @@
       inputComment.type = 'text';
       inputComment.className = 'comment-input';
       inputComment.name = `comment_${pid}`;
-      inputComment.placeholder = '必要に応じてコメントを入力（任意）';
+      inputComment.placeholder = 'Enter a comment if necessary (optional)';
       tdComment.appendChild(inputComment);
       tr.appendChild(tdComment);
 
@@ -350,7 +351,7 @@
     submitBtn.disabled = false;
   });
 
-  // リセットボタン
+  // Reset button
   resetBtn.addEventListener('click', () => {
     judgeSelect.value = '';
     judgeNameInput.value = '';
@@ -364,7 +365,7 @@
     csvOutput.value = '';
   });
 
-  // バリデーション関数（0〜5の整数かどうかを確認）
+  // Validation function (check if it is an integer from 0 to 5)
   function validateScore(value) {
     if (value === '' || value === null || value === undefined) return false;
     const n = Number(value);
@@ -372,23 +373,23 @@
     return n >= 0 && n <= 5;
   }
 
-  // 「結果送信」ボタン
+  // "Submit Results" button
   submitBtn.addEventListener('click', () => {
     const judgeId = judgeSelect.value;
     if (!judgeId) {
-      statusSpan.textContent = '先に審査委員IDを選択してください。';
+      statusSpan.textContent = 'Please select a judge ID first.';
       statusSpan.className = 'status error';
       return;
     }
 
     const assigned = assignments[judgeId];
     if (!assigned || assigned.length === 0) {
-      statusSpan.textContent = '割り当て情報がありません。（assignments の設定を確認してください）';
+      statusSpan.textContent = 'No assignment information found. (Please check the assignments settings.)';
       statusSpan.className = 'status error';
       return;
     }
 
-    // 点数・コメントの収集
+    // Collect scores and comments
     const entries = [];
     let hasError = false;
     assigned.forEach(pid => {
@@ -411,13 +412,13 @@
     });
 
     if (hasError) {
-      statusSpan.textContent = 'すべての参加者について0〜5の整数の点数を入力してください。';
+      statusSpan.textContent = 'Please enter an integer score from 0 to 5 for all participants.';
       statusSpan.className = 'status error';
       resultBox.style.display = 'none';
       return;
     }
 
-    // 結果オブジェクトの生成
+    // Generate result object
     const payload = {
       judgeId: judgeId,
       judgeName: judgeNameInput.value.trim() || null,
@@ -428,7 +429,7 @@
     const jsonStr = JSON.stringify(payload, null, 2);
     jsonOutput.value = jsonStr;
 
-    // CSVの生成（元のコードをそのまま使用）
+    // Generate CSV (use the original code as-is)
     const csvParts = [];
     function csvEscape(str) {
       if (str === null || str === undefined) return '';
@@ -449,8 +450,8 @@
 
     resultBox.style.display = 'block';
 
-    // ---- ここからバックエンドへ送信 ----
-    statusSpan.textContent = 'サーバーへ送信中です…';
+    // ---- Send to backend from here ----
+    statusSpan.textContent = 'Sending to server...';
     statusSpan.className = 'status';
 
     fetch('https://vote-nit6.onrender.com/submit_vote', {
@@ -467,12 +468,12 @@
       return res.json();
     })
     .then(data => {
-      statusSpan.textContent = 'Dropboxへのアップロード完了：' + (data.path || '');
+      statusSpan.textContent = 'Upload to Dropbox completed: ' + (data.path || '');
       statusSpan.className = 'status success';
     })
     .catch(err => {
       console.error(err);
-      statusSpan.textContent = 'サーバー送信／Dropboxアップロード中にエラーが発生しました。（管理者にお問い合わせください）';
+      statusSpan.textContent = 'An error occurred while sending to the server / uploading to Dropbox. (Please contact the administrator.)';
       statusSpan.className = 'status error';
     });
   });
