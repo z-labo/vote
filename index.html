@@ -233,7 +233,7 @@
     </div>
   </form>
 
-  <!--
+  
   <div class="result-box" id="result-box" style="display:none;">
     <h3>Generated result (JSON)</h3>
     <textarea id="json-output" readonly></textarea>
@@ -249,7 +249,7 @@
   </div>
 </div>
 
--->
+
 <script>
   // ================================
   // 1) Setting assignment information for each judge
@@ -448,7 +448,7 @@
     });
     csvOutput.value = csvParts.join(',');
 
-    resultBox.style.display = 'block';
+    // resultBox.style.display = 'block';
 
     // ---- Send to backend from here ----
     statusSpan.textContent = 'Sending to server...';

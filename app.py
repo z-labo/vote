@@ -1,6 +1,7 @@
 import os
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+JST = timezone(timedelta(hours=9))
 
 from flask import Flask, request, jsonify
 import dropbox
@@ -46,14 +47,20 @@ def submit_vote():
     return jsonify({"ok": False, "error": "bad_payload"}), 400
 
   # 3) 파일 이름/경로 만들기
+
+  now_jst = datetime.now(JST)
+  date_str = now_jst.strftime("%Y-%m-%d")  # 예: "2025-11-17"
+
+  '''
   #    예: J1_2025-11-17T09-00-00Z.json
   ts = data.get("timestamp")
   if ts is None:
     ts = datetime.now(timezone.utc).isoformat()
 
   safe_ts = ts.replace(":", "-")  # Windows/Dropbox 경로에 안전하게
+  
+  '''
   filename = f"{judge_id}_{safe_ts}.json"
-
   dropbox_path = f"{DROPBOX_BASE_FOLDER}/{filename}"
 
   # 4) Dropbox에 업로드
