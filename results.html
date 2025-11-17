@@ -116,7 +116,7 @@
     </div>
     <div>
       <button class="btn" id="refresh-btn">再読み込み</button>
-      <span class="small" style="margin-left:6px;">※ 10〜30秒ごとの自動更新も推奨</span>
+      <span class="small" style="margin-left:6px;">※ 必要に応じて手動で更新してください。</span>
     </div>
   </div>
 
@@ -147,7 +147,8 @@
 </div>
 
 <script>
-  const API_URL = "https://vote-nit6.onrender.com/api/results";  // ← 백엔드 URL
+  // 결과 API 엔드포인트 (Flask 백엔드)
+  const API_URL = "https://vote-nit6.onrender.com/api/results";
 
   const lastUpdatedSpan = document.getElementById('last-updated');
   const recordCountSpan = document.getElementById('record-count');
@@ -239,7 +240,7 @@
   // 手動更新ボタン
   refreshBtn.addEventListener('click', fetchResults);
 
-  // オプション: 30秒마다 자동 갱신
+  // 필요하면 자동 갱신도 가능
   // setInterval(fetchResults, 30000);
 </script>
 </body>
