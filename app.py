@@ -71,7 +71,7 @@ def submit_vote():
     dbx.files_upload(
       content.encode("utf-8"),
       dropbox_path,
-      mode=dropbox.files.WriteMode.add  # 같은 이름 있으면 에러, 덮어쓰려면 .overwrite
+      mode=dropbox.files.WriteMode.overwrite  # 같은 이름 있으면 에러, 덮어쓰려면 .overwrite
     )
   except Exception as e:
     # 로그용으로 출력(호스팅 서비스의 로그에서 확인)
