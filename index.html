@@ -453,11 +453,12 @@
     statusSpan.textContent = 'サーバーへ送信中です…';
     statusSpan.className = 'status';
 
-    fetch('https://vote-nit6.onrender.com', {
+    fetch('https://vote-nit6.onrender.com/submit_vote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
+
     .then(async (res) => {
       if (!res.ok) {
         const text = await res.text();
