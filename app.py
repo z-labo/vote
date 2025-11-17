@@ -5,7 +5,13 @@ from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 import dropbox
 
+from flask_cors import CORS  # ★ 추가
+
 app = Flask(__name__)
+
+# ★ CORS 설정: GitHub Pages 도메인만 허용 (테스트용으로는 "*" 도 가능)
+CORS(app, resources={r"/*": {"origins": "https://z-labo.github.io"}})
+
 
 # 환경변수에서 Dropbox 토큰 읽기
 DROPBOX_TOKEN = os.environ.get("DROPBOX_TOKEN")
@@ -19,8 +25,13 @@ def get_dbx():
   return dropbox.Dropbox(DROPBOX_TOKEN)
 
 
-@app.route("/submit_vote", methods=["POST"])
+@app.route("/submit_vote", methods=["POST", "OPTIONS"]) 
 def submit_vote():
+  # 0) 브라우저 preflight(OPTIONS) 요청 처리
+  if request.method == "OPTIONS":
+    # flask-cors가 헤더는 달아주므로, 상태코드만 204로 리턴
+    return ("", 204)
+  
   # 1) JSON 받아오기
   try:
     data = request.get_json(force=True)
