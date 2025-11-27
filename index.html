@@ -170,13 +170,13 @@
 <div class="container">
   <h1>Online Review Voting</h1>
   <div class="subtitle">
-    Each judge should enter a score from 0 to 5 for the three participants (P1–P35) assigned to them and submit the results.
+    Each judge should enter a score from 0 to 5 for the 6 or 7 participants (P1–P40) assigned to them and submit the results.
   </div>
 
   <div class="info-box">
-    • When you select your judge ID, the three participants assigned to that judge will be shown automatically.<br>
+    • When you select your judge ID, the 6 or 7 participants assigned to that judge will be shown automatically.<br>
     • Please enter a <b>score from 0 to 5</b> for each participant and click <b>"Submit Results"</b>.<br>
-    • Please <b>do not chose wrong ID</b>. It will overwirte original vote.<br>
+    • Please <b>do not chose wrong ID</b>. It will overwrite original vote.<br>
     • You can vote multiple times. We collect only the final vote.<br>
   </div>
 
@@ -260,7 +260,7 @@
   // For each judge (J1–J16, etc.), specify three participant IDs (P1–P35) to be evaluated.
  const judgeNames = {
     J1: "近藤 圭祐",   // ← 실제 이름으로 바꿔주세요
-    J2: "Rajeev Ranjan",
+    J2: "石井 勝弘",
     J3: "長谷川 智士",
     J4: "熊谷 幸汰",
     J5: "長谷川 和男",
@@ -270,7 +270,7 @@
     J9: "柳谷 伸一郎",
     J10: "福井 一",
     J11: "益田 有",
-    J12: "大塚 崇光",
+    J12: "池田 武秀",
     J13: "Tsung-Hsun Yang",
     J14: "Yu-Lung Lo",
     J15: "花山 良平",
@@ -523,6 +523,25 @@
       resultBox.style.display = 'none';
       return;
     }
+
+    // ====== 여기부터 "총점 검사" 추가 부분 ======
+    const totalScore = entries.reduce((sum, e) => sum + (e.score ?? 0), 0);
+    let expectedTotal = null;
+
+    if (assigned.length === 7) {
+      expectedTotal = 21;  // 7명일 때 21점
+    } else if (assigned.length === 6) {
+      expectedTotal = 18;  // 6명일 때 18점
+    }
+
+    if (expectedTotal !== null && totalScore !== expectedTotal) {
+      statusSpan.textContent =
+        `Total score must be ${expectedTotal} points (current: ${totalScore}).`;
+      statusSpan.className = 'status error';
+      resultBox.style.display = 'none';
+      return;  // 조건이 안 맞으면 제출 중단
+    }
+    // ====== "총점 검사" 여기까지 ======
 
     // Generate result object
     const payload = {
